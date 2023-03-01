@@ -24,24 +24,26 @@ if __name__ == '__main__':
 
     logging.basicConfig(filename=os.getenv('LOG_FILE'), level=logging.DEBUG, format='%(asctime)s - %(message)s')
 
-    def event_log(event='[UNKNOWN]', exception_show=eval(os.getenv('EXCEPTION_SHOW')), eml_error_log=eval(os.getenv('EMAIL_ERROR_LOG'))):
+    def event_log(event='[UNKNOWN]', message='No message.', exception_show=eval(os.getenv('EXCEPTION_SHOW')),
+                  eml_error_log=eval(os.getenv('EMAIL_ERROR_LOG')), eml_event=eval(os.getenv('EMAIL_OK_LOG'))):
 
-        if event == '[ERROR]'
+        if event == '[ERROR]':
             logging.exception("Surprise, error occurred.")
+            if exception_show:
+                print('\033[91m' + traceback.format_exc() + '\033[0m')
+            if eml_error_log:
+                email_reports.send_email(subject=event, message=traceback.format_exc())
+        else:
+            logging.info(message)
+            if eml_event:
+                email_reports.send_email(subject=event, message=message)
 
-        if exception_show:
-            print('\033[91m' + traceback.format_exc() + '\033[0m')
-        if eml_error_log:
-            email_reports.send_email(subject='[ERROR]', message=traceback.format_exc())
 
-    def operation_log(, eml_operation=eval(os.getenv('EMAIL_OK_LOG'))):
-
-        if eml_operation:
-            email_reports.send_email(subject=, message=traceback.format_exc())
+    event_log(event='[UPDATE]', message='Database updated successfully.')
 
 
     try:
         with open(os.getenv('CONFIG_JSON_FILE'), 'r', encoding="utf-8") as j_file:
             j_data = json.load(j_file)
     except:
-        event_log()
+        event_log(event='[ERROR]')
