@@ -6,6 +6,10 @@ import logging
 import traceback
 
 
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
+
+
 load_dotenv()
 logging.basicConfig(filename='sys.log', level=logging.DEBUG, format='%(asctime)s - %(message)s')
 
