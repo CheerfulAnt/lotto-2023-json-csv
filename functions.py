@@ -1,7 +1,23 @@
 import os
+import logging
+import traceback
 import smtplib
 import ssl
 from email.message import EmailMessage
+
+
+def event_log(event='[UNKNOWN]', message='No message.', exception_show=eval(os.getenv('EXCEPTION_SHOW')),
+              eml_error_log=eval(os.getenv('EMAIL_ERROR_LOG')), eml_event=eval(os.getenv('EMAIL_OK_LOG'))):
+    if event == '[ERROR]':
+        logging.exception("Surprise, error occurred.")
+        if exception_show:
+            print('\033[91m' + traceback.format_exc() + '\033[0m')
+        if eml_error_log:
+            send_email(subject=event, message=traceback.format_exc())
+    else:
+        logging.info(message)
+        if eml_event:
+            send_email(subject=event, message=message)
 
 
 def send_email(subject="No subject.", message='No message.'):
@@ -29,3 +45,5 @@ def send_email(subject="No subject.", message='No message.'):
             server.quit()
     except Exception as e:
         pass
+
+
