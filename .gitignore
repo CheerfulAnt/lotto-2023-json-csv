@@ -1,7 +1,8 @@
 # my files
-.env
+.env.secret
 .idea
 .log
+.log.*
 .do
 
 # Byte-compiled / optimized / DLL files
@@ -133,4 +134,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/to.do
+/log
+/varia/to.do
+/app.log.1
+/app.log.2
+/varia/notepad
+/event_report-copy.py
+/log/
+/varia/
