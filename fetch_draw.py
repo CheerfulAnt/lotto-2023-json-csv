@@ -6,6 +6,7 @@ import json
 import os
 import pandas as pd
 import csv
+from datetime import datetime
 
 # store and update raw data in csv and json format
 
@@ -78,6 +79,11 @@ draws_csv = list()
 for i in range(len(j_draw_config['items'])):
     print('Lotto: ', j_draw_config['items'][i]['results'][0])
 
+    date_time_object = datetime.strptime(j_draw_config['items'][i]['results'][0]['drawDate'],
+                                         cfg.config['date_time_format'])
+    draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+    draw_time = date_time_object.strftime(cfg.config['time_store_format'])
+
     #Lotto.update({'drawSystemId': j_draw_config['items'][i]['results'][0]['drawSystemId']})
 
     draws.append({'drawSystemId': j_draw_config['items'][i]['results'][0]['drawSystemId'],
@@ -86,8 +92,7 @@ for i in range(len(j_draw_config['items'])):
                    })
 
     draws_csv.append([j_draw_config['items'][i]['results'][0]['drawSystemId'],
-                   j_draw_config['items'][i]['results'][0]['drawDate'],
-                   *j_draw_config['items'][i]['results'][0]['resultsJson']])
+                   draw_date, draw_time, *j_draw_config['items'][i]['results'][0]['resultsJson']])
 
 lotto['Lotto'] = draws
     # print('LottoPlus: ', j_draw_config['items'][i]['results'][1])
