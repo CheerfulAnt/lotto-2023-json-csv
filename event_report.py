@@ -1,10 +1,11 @@
+import cfg
+# ------------------
 import traceback
 import smtplib
 import ssl
 from email.message import EmailMessage
 import logging
 from logging.handlers import RotatingFileHandler
-import cfg
 
 
 # Log rotation
@@ -31,7 +32,7 @@ def event_log(exception_show=cfg.config['EXCEPTION_SHOW'],
         if email_error_log:
             send_email(subject=event, message=traceback.format_exc())
     else:
-        logger.info(message)
+        logger.info(event + ' ' + message)
         if email_event_log:
             send_email(subject=event, message=message)
 
