@@ -1,0 +1,46 @@
+{
+	"base_url": "https://www.lotto.pl/api/lotteries/draw-results/by-gametype",
+	"query_strings": {
+		"game": "",
+		"index": 1,
+		"size": 5,
+		"sort": "drawDate",
+		"order": "DESC"
+	},
+	"game_type": {
+		"Lotto": {
+			"Lotto": {
+				"last_upload_date": "",
+				"last_system_id": "",
+				"last_draw_date": "",
+				"draw_days": {
+				}
+			},
+			"LottoPlus": {
+				"last_upload_date": "",
+				"last_system_id": "",
+				"last_draw_date": "",
+				"draw_days": {
+				}
+			}
+		},
+		"Szybkie600": {
+			"Szybkie600": {
+				"last_upload_date": "",
+				"last_system_id": "",
+				"last_draw_date": "",
+				"draw_days": {
+				}
+			}
+		},
+		"EkstraPremia": {
+			"EkstraPremia": {
+				"last_upload_date": "",
+				"last_system_id": "",
+				"last_draw_date": "",
+				"draw_days": {
+				}
+			}
+		}
+	}
+}
