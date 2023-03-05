@@ -1,0 +1,19 @@
+{
+	"headers": {
+		"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+		"Viewport-Width": "1024",
+		"Accept-Language": "pl-PL,pl;q=0.8",
+		"Accept-Encoding": "gzip, deflate, br",
+		"Referer": "https://www.google.com/",
+		"Sec-Ch-Ua-Mobile": "?0",
+		"Sec-Fetch-Dest": "document",
+		"Sec-Fetch-Mode": "navigate",
+		"Sec-Fetch-Site": "none",
+		"Sec-Fetch-User": "?1",
+		"Sec-Gpc": "1",
+		"Upgrade-Insecure-Requests": "1",
+		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
+		"Sec-Ch-Ua": "Chromium\";v=\"110\", \"Not A(Brand\";v=\"24\", \"Microsoft Edge\";v=\"110\"",
+		"Sec-Ch-Ua-Platform": "Windows"
+	}
+}
