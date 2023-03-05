@@ -1,0 +1,64 @@
+{
+    "Lotto": [
+        {
+            "drawSystemId": 6852,
+            "drawDate": "2023-03-04T22:00:00Z",
+            "resultsJson": [
+                32,
+                48,
+                21,
+                10,
+                34,
+                11
+            ]
+        },
+        {
+            "drawSystemId": 6851,
+            "drawDate": "2023-03-02T22:00:00Z",
+            "resultsJson": [
+                10,
+                30,
+                49,
+                1,
+                4,
+                28
+            ]
+        },
+        {
+            "drawSystemId": 6850,
+            "drawDate": "2023-02-28T22:00:00Z",
+            "resultsJson": [
+                46,
+                41,
+                2,
+                36,
+                42,
+                45
+            ]
+        },
+        {
+            "drawSystemId": 6849,
+            "drawDate": "2023-02-25T22:00:00Z",
+            "resultsJson": [
+                38,
+                7,
+                35,
+                41,
+                45,
+                10
+            ]
+        },
+        {
+            "drawSystemId": 6848,
+            "drawDate": "2023-02-23T22:00:00Z",
+            "resultsJson": [
+                10,
+                48,
+                26,
+                43,
+                22,
+                13
+            ]
+        }
+    ]
+}

@@ -97,16 +97,23 @@ for i in range(len(j_draw_config['items'])):
 lotto['Lotto'] = draws
     # print('LottoPlus: ', j_draw_config['items'][i]['results'][1])
 
-jsonStr = json.dumps(draws)
+
 print(json.dumps(lotto, indent=4))
 
 print(lotto)
 
 print(draws_csv)
+
+j_lotto = json.dumps(lotto, indent=4)
+
+with open("lotto.json", "w") as f:
+    f.write(j_lotto)
+
 with open('lotto.csv', 'w') as f:
 
     write = csv.writer(f)
     write.writerows(draws_csv)
+
 
 
 
