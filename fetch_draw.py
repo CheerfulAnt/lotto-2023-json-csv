@@ -33,7 +33,7 @@ def db_update():
 
 def get(game=cfg.config['default_game']):
 
-    main_json = os.path.isfile('lotto_orig.json')
+    main_json_exist = os.path.isfile('lotto_orig.json')
 
     try:
 
@@ -65,7 +65,7 @@ def get(game=cfg.config['default_game']):
 
         # !!! dump response to file, for parse testing
 
-        if main_json == True:
+        if not main_json_exist:
 
             request_data['query_strings']['size'] = last_game_id
 
