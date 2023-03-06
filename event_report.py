@@ -23,6 +23,7 @@ def event_log(exception_show=cfg.config['EXCEPTION_SHOW'],
               email_error_log=cfg.config['EMAIL_ERROR_LOG'],
               email_event_log=cfg.config['EMAIL_EVENT_LOG'],
               event='[UNKNOWN]',
+              subject='',
               message='No message.'):
 
     if event == '[ERROR]':
@@ -30,11 +31,13 @@ def event_log(exception_show=cfg.config['EXCEPTION_SHOW'],
         if exception_show:
             print('\033[91m' + traceback.format_exc() + '\033[0m')
         if email_error_log:
-            send_email(subject=event, message=traceback.format_exc())
+            subject = event + ' - ' + subject
+            send_email(subject=subject, message=traceback.format_exc())
     else:
         logger.info(event + ' ' + message)
         if email_event_log:
-            send_email(subject=event, message=message)
+            subject = event + ' - ' + subject
+            send_email(subject=subject, message=message)
 
 
 def send_email(emre_user=cfg.config['EMRE_USER'],
@@ -63,3 +66,14 @@ def send_email(emre_user=cfg.config['EMRE_USER'],
             server.quit()
     except Exception:
         logger.exception('Surprise, [ERROR] occurred. Can\'t sent e-mail.')
+
+
+class CustomError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+
