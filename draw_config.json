@@ -3,7 +3,7 @@
 	"query_strings": {
 		"game": "",
 		"index": 1,
-		"size": 5,
+		"size": 1,
 		"sort": "drawDate",
 		"order": "DESC"
 	},
