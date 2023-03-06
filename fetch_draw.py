@@ -115,3 +115,12 @@ with open("lotto.json", "w") as f:
 with open('lotto.csv', 'w') as f:
     write = csv.writer(f)
     write.writerows(draws_csv)
+
+
+df = pd.DataFrame(draws_csv)
+
+print('DataFrame:\n', df)
+
+
+with open('lotto_pd.csv', 'w') as f:
+    df.to_csv(f)
