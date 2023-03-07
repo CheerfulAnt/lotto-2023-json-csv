@@ -68,7 +68,7 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
 
         last_game_id = response.json()
 
-        # check if drawSystemId is not None, if yes, probably update after draw in lotto system
+        # check if drawSystemId is None, if yes, probably update after draw in lotto system
 
         if last_game_id['items'][0]['drawSystemId'] is None:
             message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
