@@ -4,13 +4,14 @@ import event_report
 import os
 import requests
 import json
+import ijson
 import pandas as pd
 from datetime import datetime
 
 
-# file names for game data: lotto_orig.json, lotto.json, lotto_plus.json, lotto.cvs, lotto_plus.cvs
-# function save_json_cvs() only for Lotto (lotto_orig.json include Lotto and LottoPlus, exclude some fields,
-# e.g specialResults
+# file names for game data: gameName_base.json, gameName.json, gameName.cvs
+# function save_json_cvs() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
+# e.g. specialResults
 
 # store and update raw data in csv and json format
 
@@ -29,138 +30,220 @@ def db_update():
     pass
 
 
-# if file exist, check last draw system id, if mach then update, if not exist create
+# get() - fetch draws, if file does not exist, dump results to json file (gameName_base.json).
+# If file exist, check last drawSystemId in file and from request, update gameName_base.json if drawSystemId's not equal
 
-def get(game=cfg.config['default_game']):
 
-    main_json_exist = os.path.isfile('lotto_orig.json')
+def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
+    base_file_name = game + '_' + base_file
+
+    main_json_exist = os.path.isfile(base_file_name)  # check if file exist
+
+    message = ''  # for event_log - completion during code execution
 
     try:
+
+        # get data to build request
 
         with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
             request_data = json.load(j_file)
 
             request_data['query_strings']['game'] = game
 
-            # print(request_data['query_strings'])
-
         with open(cfg.config['REQUESTS_JSON'], 'r', encoding=cfg.config['ENCODING']) as j_file:
             j_requests = json.load(j_file)
+
+        # get last draw
 
         response = requests.get(request_data['base_url'], headers=j_requests['headers'],
                                 params=request_data['query_strings'])
 
-        # Check response.status_code, if not 200, raise Exception
+        # check response.status_code, if not 200, raise Exception - CustomError
 
         if response.status_code != 200:
             message = 'Game "' + game + '" - Cannot fetch json data, status code: ' + str(response.status_code)
             raise event_report.CustomError(message)
 
+        # get last drawSystemId
+
         last_game_id = response.json()
         last_game_id = last_game_id['items'][0]['drawSystemId']
 
-        print(last_game_id)
-
-        print(response.json())
-
-        # !!! dump response to file, for parse testing
+        # create gameName_base.json file if not exist, based on last draw, 'size' param = drawSystemId - get all draws
 
         if not main_json_exist:
 
             request_data['query_strings']['size'] = last_game_id
 
-            print(request_data['query_strings'])
-
             response = requests.get(request_data['base_url'], headers=j_requests['headers'],
                                     params=request_data['query_strings'])
 
-            # Check response.status_code, if not 200, raise Exception
+            # Check response.status_code, if not 200, raise Exception - CustomError
 
             if response.status_code != 200:
-                message = 'Game "' + game + '" - Cannot fetch json data, status code: ' + str(response.status_code)
+                message = 'Game "' + game + '" - Cannot fetch json data, status code: ' \
+                          + str(response.status_code) + '.'
                 raise event_report.CustomError(message)
 
-            with open('lotto_orig.json', 'w', encoding="utf-8") as j_file:
-                json.dump(response.json(), j_file, indent=4)
-                j_file.truncate()  # remove remaining part
+            # dump response results to gameName_base.json
 
-        event_report.event_log(event='[UPDATE]', message='Fetch draw')
+            with open(base_file_name, 'w', encoding="utf-8") as j_file:
+                json.dump(response.json(), j_file, indent=4)
+                message = 'Fetched all ' + game + ' draws.'
+
+        # if file exist, fetch only draws not present in gameName_base.json,
+        # merge with existing data, save updated, new gameName_base.json
+
+        if main_json_exist:
+
+            # json file unordered, get all draws system ID, and check max value (last draw in file)
+            # ijson - iterative json parser, instead of loading the entire file as a json object
+
+            with open(base_file_name, 'r', encoding=cfg.config['ENCODING']) as j_file:
+                last_game_id_file = ijson.items(j_file, 'items.item.drawSystemId')
+                last_game_id_file = max(last_game_id_file)
+
+            # check drawSystemId's from response and file, and get missing draws
+
+            if last_game_id > last_game_id_file:
+
+                get_size = last_game_id - last_game_id_file
+
+                request_data['query_strings']['size'] = get_size
+
+                response = requests.get(request_data['base_url'], headers=j_requests['headers'],
+                                        params=request_data['query_strings'])
+
+                # check response.status_code, if not 200, raise Exception - CustomError
+
+                if response.status_code != 200:
+                    message = 'Game "' + game + '" - Cannot fetch json data, status code: ' \
+                              + str(response.status_code) + '.'
+                    raise event_report.CustomError(message)
+
+                # update json data
+
+                j_data = response.json()
+
+                with open(base_file_name, 'r', encoding=cfg.config['ENCODING']) as j_file:
+                    j_file_data = json.load(j_file)
+
+                for i in range(len(j_data['items'])):
+                    j_file_data['items'].insert(i, j_data['items'][i])
+
+                # save fetched data to gameName_base.json
+
+                with open(base_file_name, 'w', encoding=cfg.config['ENCODING']) as j_file:
+                    json.dump(j_file_data, j_file, indent=4)
+                    message = 'Updated ' + game + ' draws.'
+
+        if message == '':
+            message = 'Nothing to do, ' + game + ' draws are up to date.'
+
+        event_report.event_log(event='[UPDATE]', subject=message, message=message)
     except event_report.CustomError as ce:
         event_report.event_log(event='[ERROR]', subject=str(ce)[1:-1])
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-get()
+# get()
+
+# function not ready, partially works  :-)
+
+def save_json_cvs(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
+    base_file_name = game + '_' + base_file
+    json_lotto_file = 'Lotto.json'
+    json_lotto_plus_file = 'LottoPlus.json'
+    cvs_lotto_file = 'Lotto.cvs'
+    cvs_lotto_plus_file = 'LottoPlus.cvs'
+
+    main_json_exist = os.path.isfile(base_file_name)  # check if file exist
+
+    message = ''  # for event_log - completion during code execution
+
+    try:
+
+        if not main_json_exist:
+            message = 'File ' + base_file_name + ' does not exist.'
+            raise event_report.CustomError(message)
+
+        with open(base_file_name, 'r', encoding=cfg.config['ENCODING']) as j_file:
+            j_draws = json.load(j_file)
+
+        #print(json.dumps(j_draws['items'], indent=4))
+
+        print(len(j_draws['items']))
+
+        draw_lotto_list = list()
+        draw_lotto_dict = dict()
+
+        draw_lotto_plus_list = list()
+        draw_lotto_plus_dict = dict()
+
+        draw_lotto_csv = list()
+        draw_lotto_plus_csv = list()
+
+        # !!! to do - check if item is Lotto or LottoPlus
+        # to do dump to files
+
+        for i in range(len(j_draws['items'])):
+
+            date_time_object = datetime.strptime(j_draws['items'][i]['results'][0]['drawDate'],
+                                                 cfg.config['date_time_format'])
+            draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+            draw_time = date_time_object.strftime(cfg.config['time_store_format'])
+
+            draw_lotto_list.append({'drawSystemId': j_draws['items'][i]['results'][0]['drawSystemId'],
+                                    'drawDate': j_draws['items'][i]['results'][0]['drawDate'],
+                                    'resultsJson': j_draws['items'][i]['results'][0]['resultsJson']
+                                    })
+
+            draw_lotto_csv.append([j_draws['items'][i]['results'][0]['drawSystemId'],
+                                   draw_date, draw_time, *j_draws['items'][i]['results'][0]['resultsJson']])
+
+            if len(j_draws['items'][i]['results']) != 1:
+
+                date_time_object = datetime.strptime(j_draws['items'][i]['results'][1]['drawDate'],
+                                                     cfg.config['date_time_format'])
+                draw_date = date_time_object.strftime(cfg.config['date_store_format'])
+                draw_time = date_time_object.strftime(cfg.config['time_store_format'])
+
+                draw_lotto_plus_list.append({'drawSystemId': j_draws['items'][i]['results'][1]['drawSystemId'],
+                                             'drawDate': j_draws['items'][i]['results'][1]['drawDate'],
+                                             'resultsJson': j_draws['items'][i]['results'][1]['resultsJson']
+                                             })
+
+                draw_lotto_plus_csv.append([j_draws['items'][i]['results'][1]['drawSystemId'],
+                                            draw_date, draw_time, *j_draws['items'][i]['results'][1]['resultsJson']])
+
+        draw_lotto_dict['Lotto'] = draw_lotto_list
+
+        draw_lotto_plus_dict['LottoPlus'] = draw_lotto_plus_list
+
+        print(draw_lotto_dict)
+
+        j_lotto = json.dumps(draw_lotto_dict, indent=4)
+
+        with open("lotto.json", "w") as j_file:
+            j_file.write(j_lotto)
+
+        columns = ['Draw Id', 'Date', 'Time', '1', '2', '3', '4', '5', '6']
+        df = pd.DataFrame(data=draw_lotto_csv, columns=columns)
+
+        print(df)
+
+        with open('lotto.csv', 'w') as csv_file:
+            df.to_csv(csv_file, header=columns)
+
+        if message == '':
+            message = 'Nothing to do, ' + game + ' draws are up to date.'
+
+        event_report.event_log(event='[UPDATE]', subject=message, message=message)
+    except event_report.CustomError as ce:
+        event_report.event_log(event='[ERROR]', subject=str(ce)[1:-1])
+    except Exception as e:
+        event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-def save_json_cvs():
-    pass
-#
-#
-# with open('draw_test.json', 'r', encoding=cfg.config['ENCODING']) as j_file:
-#     j_draw_config = json.load(j_file)
-#
-#     # print(j_draw_config['items'])
-
-# print(json.dumps(j_draw_config['items'], indent=4))
-
-# print(len(j_draw_config['items']))
-
-# draw_lotto_list = list()
-# draw_lotto_dict = dict()
-#
-# draw_lotto_plus_list = list()
-# draw_lotto_plus_dict = dict()
-#
-# draw_lotto_csv = list()
-# draw_lotto_plus_csv = list()
-#
-# for i in range(len(j_draw_config['items'])):
-#     date_time_object = datetime.strptime(j_draw_config['items'][i]['results'][0]['drawDate'],
-#                                          cfg.config['date_time_format'])
-#     draw_date = date_time_object.strftime(cfg.config['date_store_format'])
-#     draw_time = date_time_object.strftime(cfg.config['time_store_format'])
-#
-#     draw_lotto_list.append({'drawSystemId': j_draw_config['items'][i]['results'][0]['drawSystemId'],
-#                             'drawDate': j_draw_config['items'][i]['results'][0]['drawDate'],
-#                             'resultsJson': j_draw_config['items'][i]['results'][0]['resultsJson']
-#                             })
-#
-#     draw_lotto_csv.append([j_draw_config['items'][i]['results'][0]['drawSystemId'],
-#                            draw_date, draw_time, *j_draw_config['items'][i]['results'][0]['resultsJson']])
-#
-#
-#     date_time_object = datetime.strptime(j_draw_config['items'][i]['results'][1]['drawDate'],
-#                                          cfg.config['date_time_format'])
-#     draw_date = date_time_object.strftime(cfg.config['date_store_format'])
-#     draw_time = date_time_object.strftime(cfg.config['time_store_format'])
-#
-#     draw_lotto_plus_list.append({'drawSystemId': j_draw_config['items'][i]['results'][1]['drawSystemId'],
-#                             'drawDate': j_draw_config['items'][i]['results'][1]['drawDate'],
-#                             'resultsJson': j_draw_config['items'][i]['results'][1]['resultsJson']
-#                             })
-#
-#     draw_lotto_plus_csv.append([j_draw_config['items'][i]['results'][1]['drawSystemId'],
-#                            draw_date, draw_time, *j_draw_config['items'][i]['results'][1]['resultsJson']])
-#
-#
-#
-# draw_lotto_dict['Lotto'] = draw_lotto_list
-#
-# draw_lotto_plus_dict['LottoPlus'] = draw_lotto_plus_list
-
-# print(draw_lotto_dict)
-#
-# j_lotto = json.dumps(draw_lotto_dict, indent=4)
-#
-# with open("lotto.json", "w") as f:
-#     f.write(j_lotto)
-#
-# columns = ['Draw Id', 'Date', 'Time', '1', '2', '3', '4', '5', '6']
-# df = pd.DataFrame(data=draws_csv, columns=columns)
-#
-# print(df)
-#
-# with open('lotto_pd.csv', 'w') as f:
-#     df.to_csv(f, header=columns)
+#save_json_cvs()
