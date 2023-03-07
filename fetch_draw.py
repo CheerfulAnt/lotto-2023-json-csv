@@ -67,6 +67,13 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
         # get last drawSystemId
 
         last_game_id = response.json()
+
+        # check if drawSystemId is not None, if yes, probably update after draw in lotto system
+
+        if last_game_id['items'][0]['drawSystemId'] is None:
+            message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
+            raise event_report.CustomError(message)
+
         last_game_id = last_game_id['items'][0]['drawSystemId']
 
         # create gameName_base.json file if not exist, based on last draw, 'size' param = drawSystemId - get all draws
@@ -147,7 +154,7 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-# get()
+get()
 
 # function not ready, partially works  :-)
 
