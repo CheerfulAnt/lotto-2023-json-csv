@@ -160,7 +160,7 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-#get()
+# get()
 
 # Function save_json_cvs() for fun, not ready, but works :-) It probably won't be developed :-)
 # Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
@@ -263,4 +263,4 @@ def save_json_cvs(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-#save_json_cvs()
+# save_json_cvs()
