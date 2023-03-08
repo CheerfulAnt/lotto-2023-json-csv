@@ -9,8 +9,8 @@ import pandas as pd
 from datetime import datetime
 
 
-# file names for game data: gameName_base.json, gameName.json, gameName.cvs
-# function save_json_cvs() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
+# file names for game data: gameName_base.json, gameName.json, gameName.csv
+# function save_json_csv() only for Lotto (Lotto_base.json include Lotto and LottoPlus, exclude some fields,
 # e.g. specialResults
 
 # store and update raw data in csv and json format
@@ -162,19 +162,19 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
 
 # get()
 
-# Function save_json_cvs() for fun, not ready, but works :-) It probably won't be developed :-)
+# Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
 # Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
 
 
-def save_json_cvs(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
+def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
 
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
         json_lotto_file = file_dir + 'Lotto.json'
         json_lotto_plus_file = file_dir + 'LottoPlus.json'
-        cvs_lotto_file = file_dir + 'Lotto.cvs'
-        cvs_lotto_plus_file = file_dir + 'LottoPlus.cvs'
+        csv_lotto_file = file_dir + 'Lotto.csv'
+        csv_lotto_plus_file = file_dir + 'LottoPlus.csv'
 
         main_json_exist = os.path.isfile(base_file_name_path)  # check if file exist
 
@@ -246,16 +246,16 @@ def save_json_cvs(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
 
         df = pd.DataFrame(data=draw_lotto_csv, columns=columns)
 
-        with open(cvs_lotto_file, 'w') as csv_file:
+        with open(csv_lotto_file, 'w') as csv_file:
             df.to_csv(csv_file, header=columns)
 
         df = pd.DataFrame(data=draw_lotto_plus_csv, columns=columns)
 
-        with open(cvs_lotto_plus_file, 'w') as csv_file:
+        with open(csv_lotto_plus_file, 'w') as csv_file:
             df.to_csv(csv_file, header=columns)
 
         if message == '':
-            message = 'save_json_cvs() do not use this function in the real world! :-)'
+            message = 'save_json_csv() do not use this function in the real world! :-)'
 
         event_report.event_log(event='[UPDATE]', subject=message, message=message)
     except event_report.CustomError as ce:
@@ -263,4 +263,4 @@ def save_json_cvs(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-# save_json_cvs()
+save_json_csv()
