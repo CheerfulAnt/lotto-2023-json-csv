@@ -30,18 +30,24 @@ def db_update():
     pass
 
 
-# get() - fetch draws, if file does not exist, dump results to json file (gameName_base.json).
+# Function get() - fetch draws, if file does not exist, dump results to json file (gameName_base.json).
 # If file exist, check last drawSystemId in file and from request, update gameName_base.json if drawSystemId's not equal
 
 
-def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
-    base_file_name = game + '_' + base_file
-
-    main_json_exist = os.path.isfile(base_file_name)  # check if file exist
-
-    message = ''  # for event_log - completion during code execution
+def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
 
     try:
+
+        base_file_name_path = file_dir + game + '_' + base_file
+
+        file_dir_exist = os.path.exists(file_dir)  # check if directory for draws files exists if not - create
+
+        if not file_dir_exist:
+            os.makedirs(file_dir)
+
+        main_json_exist = os.path.isfile(base_file_name_path)  # check if file exist
+
+        message = ''  # for event_log - completion during code execution
 
         # get data to build request
 
@@ -94,7 +100,7 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
 
             # dump response results to gameName_base.json
 
-            with open(base_file_name, 'w', encoding="utf-8") as j_file:
+            with open(base_file_name_path, 'w', encoding="utf-8") as j_file:
                 json.dump(response.json(), j_file, indent=4)
                 message = 'Fetched all ' + game + ' draws.'
 
@@ -106,7 +112,7 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
             # json file unordered, get all draws system ID, and check max value (last draw in file)
             # ijson - iterative json parser, instead of loading the entire file as a json object
 
-            with open(base_file_name, 'r', encoding=cfg.config['ENCODING']) as j_file:
+            with open(base_file_name_path, 'r', encoding=cfg.config['ENCODING']) as j_file:
                 last_game_id_file = ijson.items(j_file, 'items.item.drawSystemId')
                 last_game_id_file = max(last_game_id_file)
 
@@ -132,7 +138,7 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
 
                 j_data = response.json()
 
-                with open(base_file_name, 'r', encoding=cfg.config['ENCODING']) as j_file:
+                with open(base_file_name_path, 'r', encoding=cfg.config['ENCODING']) as j_file:
                     j_file_data = json.load(j_file)
 
                 for i in range(len(j_data['items'])):
@@ -140,7 +146,7 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
 
                 # save fetched data to gameName_base.json
 
-                with open(base_file_name, 'w', encoding=cfg.config['ENCODING']) as j_file:
+                with open(base_file_name_path, 'w', encoding=cfg.config['ENCODING']) as j_file:
                     json.dump(j_file_data, j_file, indent=4)
                     message = 'Updated ' + game + ' draws.'
 
@@ -154,33 +160,32 @@ def get(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-get()
+#get()
 
-# function not ready, partially works  :-)
+# Function save_json_cvs() for fun, not ready, but works :-) It probably won't be developed :-)
+# Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
 
-def save_json_cvs(game=cfg.config['default_game'], base_file=cfg.config['base_file']):
-    base_file_name = game + '_' + base_file
-    json_lotto_file = 'Lotto.json'
-    json_lotto_plus_file = 'LottoPlus.json'
-    cvs_lotto_file = 'Lotto.cvs'
-    cvs_lotto_plus_file = 'LottoPlus.cvs'
 
-    main_json_exist = os.path.isfile(base_file_name)  # check if file exist
-
-    message = ''  # for event_log - completion during code execution
+def save_json_cvs(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
 
     try:
 
+        base_file_name_path = file_dir + game + '_' + base_file
+        json_lotto_file = file_dir + 'Lotto.json'
+        json_lotto_plus_file = file_dir + 'LottoPlus.json'
+        cvs_lotto_file = file_dir + 'Lotto.cvs'
+        cvs_lotto_plus_file = file_dir + 'LottoPlus.cvs'
+
+        main_json_exist = os.path.isfile(base_file_name_path)  # check if file exist
+
+        message = ''  # for event_log - completion during code execution
+
         if not main_json_exist:
-            message = 'File ' + base_file_name + ' does not exist.'
+            message = 'File ' + base_file_name_path + ' does not exist.'
             raise event_report.CustomError(message)
 
-        with open(base_file_name, 'r', encoding=cfg.config['ENCODING']) as j_file:
+        with open(base_file_name_path, 'r', encoding=cfg.config['ENCODING']) as j_file:
             j_draws = json.load(j_file)
-
-        #print(json.dumps(j_draws['items'], indent=4))
-
-        print(len(j_draws['items']))
 
         draw_lotto_list = list()
         draw_lotto_dict = dict()
@@ -192,7 +197,6 @@ def save_json_cvs(game=cfg.config['default_game'], base_file=cfg.config['base_fi
         draw_lotto_plus_csv = list()
 
         # !!! to do - check if item is Lotto or LottoPlus
-        # to do dump to files
 
         for i in range(len(j_draws['items'])):
 
@@ -228,29 +232,35 @@ def save_json_cvs(game=cfg.config['default_game'], base_file=cfg.config['base_fi
 
         draw_lotto_plus_dict['LottoPlus'] = draw_lotto_plus_list
 
-        print(draw_lotto_dict)
-
         j_lotto = json.dumps(draw_lotto_dict, indent=4)
 
-        with open("lotto.json", "w") as j_file:
+        with open(json_lotto_file, "w") as j_file:
+            j_file.write(j_lotto)
+
+        j_lotto = json.dumps(draw_lotto_plus_dict, indent=4)
+
+        with open(json_lotto_plus_file, "w") as j_file:
             j_file.write(j_lotto)
 
         columns = ['Draw Id', 'Date', 'Time', '1', '2', '3', '4', '5', '6']
+
         df = pd.DataFrame(data=draw_lotto_csv, columns=columns)
 
-        print(df)
+        with open(cvs_lotto_file, 'w') as csv_file:
+            df.to_csv(csv_file, header=columns)
 
-        with open('lotto.csv', 'w') as csv_file:
+        df = pd.DataFrame(data=draw_lotto_plus_csv, columns=columns)
+
+        with open(cvs_lotto_plus_file, 'w') as csv_file:
             df.to_csv(csv_file, header=columns)
 
         if message == '':
-            message = 'Nothing to do, ' + game + ' draws are up to date.'
+            message = 'save_json_cvs() do not use this function in the real world! :-)'
 
         event_report.event_log(event='[UPDATE]', subject=message, message=message)
     except event_report.CustomError as ce:
         event_report.event_log(event='[ERROR]', subject=str(ce)[1:-1])
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
-
 
 #save_json_cvs()
