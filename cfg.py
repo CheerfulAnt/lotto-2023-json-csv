@@ -1,3 +1,5 @@
+# load and cast variables from .env.secret and .env.shared files
+
 from dotenv import dotenv_values
 from pydantic import BaseModel
 
@@ -23,3 +25,9 @@ class ConfigCast(BaseModel):
 config_cast = ConfigCast(**config)
 
 config.update(config_cast)
+
+db_config = {'dbname': config['DB_DATABASE'],
+             'user': config['DB_USER'],
+             'password': config['DB_PASSWORD'],
+             'host': config['DB_HOST']
+             }
