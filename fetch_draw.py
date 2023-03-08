@@ -263,4 +263,4 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-save_json_csv()
+# save_json_csv()
