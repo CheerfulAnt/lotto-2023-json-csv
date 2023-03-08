@@ -1,5 +1,6 @@
 import cfg
 # ------------------
+import os
 import traceback
 import smtplib
 import ssl
@@ -7,8 +8,13 @@ from email.message import EmailMessage
 import logging
 from logging.handlers import RotatingFileHandler
 
+# check if directory for log files exists if not - create
+file_dir_exist = os.path.exists(cfg.config['LOG_DIR'])
 
-# Log rotation
+if not file_dir_exist:
+    os.makedirs(cfg.config['LOG_DIR'])
+
+# log rotation
 logger = logging.getLogger(cfg.config['PROJECT_NAME'])
 logger.setLevel(logging.DEBUG)
 fh = RotatingFileHandler(filename=cfg.config['LOG_FILE'], maxBytes=cfg.config['LOG_SIZE'],
@@ -75,5 +81,3 @@ class CustomError(Exception):
 
     def __str__(self):
         return repr(self.value)
-
-
