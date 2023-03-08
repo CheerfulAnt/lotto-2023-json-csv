@@ -18,15 +18,4 @@ import json
 if sys.version_info < (3, 10):
     raise Exception('Tested only on Python 3.10 :-)')
 
-fetch_draw.get()
-
-
-#
-# try:
-#     with open(cfg.config['REQUESTS_JSON'], 'r', encoding=cfg.config['ENCODING']) as j_file:
-#         j_data = json.load(j_file)
-# event_report.event_log(event='[UPDATE]', message='Database updated successfully.')
-# except Exception:
-#     event_report.event_log(event='[ERROR]')
-#
-# print(j_data['headers'])
+# check modules in the project :-)
