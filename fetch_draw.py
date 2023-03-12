@@ -35,7 +35,6 @@ def db_update():
 
 
 def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
-
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
@@ -160,14 +159,14 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
         event_report.event_log(event='[ERROR]', subject=str(e))
 
 
-# get()
+get()
+
 
 # Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
 # Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
 
 
 def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
-
     try:
 
         base_file_name_path = file_dir + game + '_' + base_file
@@ -214,7 +213,6 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
                                    draw_date, draw_time, *j_draws['items'][i]['results'][0]['resultsJson']])
 
             if len(j_draws['items'][i]['results']) != 1:
-
                 date_time_object = datetime.strptime(j_draws['items'][i]['results'][1]['drawDate'],
                                                      cfg.config['date_time_format'])
                 draw_date = date_time_object.strftime(cfg.config['date_store_format'])
@@ -263,4 +261,5 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-# save_json_csv()
+
+save_json_csv()
