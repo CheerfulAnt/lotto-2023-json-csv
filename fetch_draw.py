@@ -31,8 +31,12 @@ def db_update():
 
 
 # Function get() - fetch draws, if file does not exist, dump results to json file (gameName_base.json).
-# If file exist, check last drawSystemId in file and from request, update gameName_base.json if drawSystemId's not equal
-
+# If file exist, check last drawSystemId in file and from request, update gameName_base.json if
+# drawSystemId's not equal.
+# Unfortunately get() for fetching all data, in this version works only with a small number of draws, e.g.
+# Lotto (approx. 7k results), EkstraPremia (approx. 2.5k results)
+# For e.g. Szybkie600 returns error: {"code":500,"message":"Internal server error"} (approx. 300k results).
+# It will be fixed in the version of the function for the database, by sequential fetching.
 
 def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
     try:
@@ -71,15 +75,17 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
 
         # get last drawSystemId
 
-        last_game_id = response.json()
+        last_game = response.json()
 
         # check if drawSystemId is None, if yes, probably update after draw in lotto system
+        # if not None get draw  ID and draw date
 
-        if last_game_id['items'][0]['drawSystemId'] is None:
+        if last_game['items'][0]['drawSystemId'] is None:
             message = 'Game "' + game + '" - Cannot fetch json data, drawSystemId is None.'
             raise event_report.CustomError(message)
 
-        last_game_id = last_game_id['items'][0]['drawSystemId']
+        last_game_id = last_game['items'][0]['drawSystemId']
+        last_draw_date = last_game['items'][0]['drawDate']
 
         # create gameName_base.json file if not exist, based on last draw, 'size' param = drawSystemId - get all draws
 
@@ -149,6 +155,19 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
                     json.dump(j_file_data, j_file, indent=4)
                     message = 'Updated ' + game + ' draws.'
 
+        # update data in draw_config.json
+
+        with open(cfg.config['DRAW_CONFIG'], 'r+', encoding=cfg.config['ENCODING']) as j_file:
+            j_data_update = json.load(j_file)
+
+            j_data_update['last_run_get'] = datetime.now().replace(microsecond=0).isoformat()
+            j_data_update['game_type'][game]['last_system_id'] = last_game_id
+            j_data_update['game_type'][game]['last_draw_date'] = last_draw_date
+
+            j_file.seek(0)
+            json.dump(j_data_update, j_file, indent=4)
+            j_file.truncate()
+
         if message == '':
             message = 'Nothing to do, ' + game + ' draws are up to date.'
 
@@ -158,13 +177,15 @@ def get(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_f
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-
-get()
+# with open(cfg.config['DRAW_CONFIG'], 'r', encoding=cfg.config['ENCODING']) as j_file:
+#     j_data = json.load(j_file)
+#
+# for key in j_data['game_type'].keys():
+#     get(game=key)
 
 
 # Function save_json_csv() for fun, not ready, but works :-) It probably won't be developed :-)
 # Do not use this function in the real world! :-) Can parse only Lotto json file with items Lotto and LottoPlus.
-
 
 def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR'], base_file=cfg.config['base_file']):
     try:
@@ -261,5 +282,4 @@ def save_json_csv(game=cfg.config['default_game'], file_dir=cfg.config['DATA_DIR
     except Exception as e:
         event_report.event_log(event='[ERROR]', subject=str(e))
 
-
-save_json_csv()
+# save_json_csv()
