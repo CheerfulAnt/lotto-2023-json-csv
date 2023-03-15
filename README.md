@@ -1,3 +1,3 @@
-# lotto-2023
-
-The scripts download the results of Polish Lotto draws. Fun with json, csv, PostgreSQL, pandas, logging... 
+### This version of the script is temporarily not developed. Please check lotto-2023-db repo.
+The scripts download the results of Polish Lotto draws. Fun with json, csv, pandas, logging... 
+W/o database. For version with draws stored in database, please check lotto-2023-db repo.
